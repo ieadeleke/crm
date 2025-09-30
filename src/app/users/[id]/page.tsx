@@ -36,7 +36,9 @@ export default function UserDetailPage() {
       <Card>
         <CardHeader className="flex items-center justify-between">
           <CardTitle>Basic Info</CardTitle>
-          <Button className="py-2" onClick={() => setOpen(true)}>Reassign</Button>
+          {role === 'super_agent' && (
+            <Button className="py-2" onClick={() => setOpen(true)}>Reassign</Button>
+          )}
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div><div className="text-xs text-gray-500">Name</div><div>{user.name}</div></div>

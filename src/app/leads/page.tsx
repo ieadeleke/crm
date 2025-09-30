@@ -73,6 +73,13 @@ export default function LeadsPage() {
     })();
   }, []);
 
+  function maskPhone(p?: string) {
+    const s = String(p || '').replace(/\D+/g, '');
+    if (!s) return '—';
+    const last = s.slice(-4);
+    return `••••••${last}`;
+  }
+
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
@@ -121,7 +128,7 @@ export default function LeadsPage() {
                 <TH>Email</TH>
                 <TH>Phone</TH>
                 <TH>Status</TH>
-                <TH>Platform</TH>
+                <TH>Source</TH>
                 <TH>Assigned</TH>
                 <TH>Actions</TH>
               </TR>
@@ -135,7 +142,7 @@ export default function LeadsPage() {
                     </Link>
                   </TD>
                   <TD>{l.email || '—'}</TD>
-                  <TD>{l.phone || '—'}</TD>
+                  <TD>{role === 'super_agent' ? (l.phone || '—') : maskPhone(l.phone)}</TD>
                   <TD><StatusBadge value={l.status} /></TD>
                   <TD><PlatformBadge source={l.source} /></TD>
                   <TD>{l.assignedAgent ? l.assignedAgent.name : '—'}</TD>
@@ -147,14 +154,8 @@ export default function LeadsPage() {
                         onClick={async ()=>{ try { await api.autoAssignLead(l.id); toast.success('Auto-assigned'); await load(page); } catch (e:any) { toast.error(e?.message || 'Failed'); } }}
                       >Auto-Assign</button>
                     )}
-                    {role === 'agent' && meId && l.assignedAgent && (l as any).assignedAgent.id === meId && l.phone && (
-                      voiceEnabled
-                        ? <VoiceCallButton phone={l.phone} leadId={l.id} conferenceName={`lead-${l.id}`} />
-                        : (
-                          <a href={`tel:${String(l.phone).replace(/[^+0-9]/g, '')}`} className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50" title="Call now">
-                            <PhoneCall size={16} /> Call
-                          </a>
-                        )
+                    {role === 'agent' && meId && l.assignedAgent && (l as any).assignedAgent.id === meId && (
+                      <VoiceCallButton leadId={l.id} conferenceName={`lead-${l.id}`} />
                     )}
                     {role === 'agent' && meId && l.assignedAgent && (l as any).assignedAgent.id === meId && (
                       <button

@@ -31,6 +31,13 @@ export default function LeadDetailPage() {
   const conferenceName = `lead-${id}`;
   const hasActive = calls.some((c:any) => !c.endedAt && (!c.callStatus || ["initiated","ringing","answered","in-progress","queued"].includes(String(c.callStatus))));
 
+  function maskPhone(p?: string) {
+    const s = String(p || '').replace(/\D+/g, '');
+    if (!s) return '—';
+    const last = s.slice(-4);
+    return `••••••${last}`;
+  }
+
   async function load() {
     try {
       const l = await api.getLead(id);
@@ -82,12 +89,8 @@ export default function LeadDetailPage() {
                 <Button className="py-2" variant="ghost" onClick={async ()=>{ try { await api.autoAssignLead(id); toast.success('Auto-assigned'); await load(); } catch (e:any) { toast.error(e?.message || 'Failed'); } }}>Auto-Assign</Button>
               </>
             )}
-            {role === 'agent' && lead.phone && (
-              voiceEnabled ? (
-                <VoiceCallButton phone={lead.phone} leadId={id} conferenceName={conferenceName} />
-              ) : (
-                <a href={`tel:${String(lead.phone).replace(/[^+0-9]/g, '')}`} className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50" title="Call now"><PhoneCall size={16} /> Call</a>
-              )
+            {(role === 'agent' || role === 'super_agent') && (
+              <VoiceCallButton leadId={id} conferenceName={conferenceName} />
             )}
             {role === 'super_agent' && voiceEnabled && hasActive && (
               <VoiceCallButton supervisor conferenceName={conferenceName} label="Barge" />
@@ -97,7 +100,7 @@ export default function LeadDetailPage() {
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div><div className="text-xs text-gray-500">Name</div><div>{lead.name || '—'}</div></div>
           <div><div className="text-xs text-gray-500">Email</div><div>{lead.email || '—'}</div></div>
-          <div><div className="text-xs text-gray-500">Phone</div><div>{lead.phone || '—'}</div></div>
+          <div><div className="text-xs text-gray-500">Phone</div><div>{role === 'super_agent' ? (lead.phone || '—') : maskPhone(lead.phone)}</div></div>
           <div><div className="text-xs text-gray-500">Company</div><div>{lead.company || '—'}</div></div>
           <div><div className="text-xs text-gray-500">Platform</div><div><PlatformBadge source={lead.source} /></div></div>
           <div><div className="text-xs text-gray-500">Assigned Agent</div><div>{lead.assignedAgent ? lead.assignedAgent.name : '—'}</div></div>
